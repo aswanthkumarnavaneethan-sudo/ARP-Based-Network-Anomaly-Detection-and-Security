@@ -281,7 +281,7 @@ def get_lan_ip():
 
 if __name__ == "__main__":
     lan_ip = get_lan_ip()
-    port = 5000
+    port = int(os.environ.get("PORT", 5000))
     print("=" * 68)
     print("  NETGUARD — NETWORK SECURITY & ARP THREAT DETECTION SYSTEM")
     print("=" * 68)

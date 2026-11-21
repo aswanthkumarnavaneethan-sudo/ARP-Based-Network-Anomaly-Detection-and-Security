@@ -30,8 +30,10 @@ def get_lan_ip():
         return "127.0.0.1"
 
 
-def run_production(host="0.0.0.0", port=5000, threads=8):
+def run_production(host="0.0.0.0", port=None, threads=8):
     """Launch the production WSGI server."""
+    if port is None:
+        port = int(os.environ.get("PORT", 5000))
     lan_ip = get_lan_ip()
     
     print("\n" + "=" * 72)
