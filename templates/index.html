@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETGUARD — Network Security & ARP Threat Detection System</title>
+    <meta name="description" content="Industrial Metallic Silver Cybersecurity Dashboard for Passive Network Monitoring and ARP Threat Detection.">
+
+    <!-- Google Fonts for Modern Industrial Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons via CDN (with fallback embedded SVGs) -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Chart.js for Silver Telemetry Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Metallic Silver Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="metallic-theme">
+
+<div class="app-container">
+
+    <!-- ======================================================== -->
+    <!-- 1. LEFT SIDEBAR: Metallic Brushed Aluminum Navigation    -->
+    <!-- ======================================================== -->
+    <aside class="sidebar" id="sidebar">
+
+        <!-- Logo & Branding -->
+        <div class="sidebar-brand">
+            <div class="brand-shield-wrapper">
+                <svg class="brand-shield-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FFFFFF" />
+                            <stop offset="45%" stop-color="#D2D6DC" />
+                            <stop offset="70%" stop-color="#A5ACB5" />
+                            <stop offset="100%" stop-color="#E5E8EB" />
+                        </linearGradient>
+                        <linearGradient id="shieldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FFFFFF" />
+                            <stop offset="100%" stop-color="#59636D" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M20 4L33 9V20C33 28 27.5 34.5 20 37C12.5 34.5 7 28 7 20V9L20 4Z" 
+                          fill="url(#shieldGrad)" stroke="url(#shieldBorder)" stroke-width="2"/>
+                    <path d="M20 11V29M12 18H28" stroke="#252B32" stroke-width="1.8" stroke-linecap="round"/>
+                    <circle cx="20" cy="18" r="4.5" fill="#E2E5E8" stroke="#252B32" stroke-width="1.8"/>
+                    <circle cx="20" cy="18" r="1.5" fill="#DC2626"/>
+                </svg>
+            </div>
+            <div class="brand-titles">
+                <h1 class="brand-name">NETGUARD</h1>
+                <span class="brand-tagline">SECURITY & ARP DETECTOR</span>
+            </div>
+        </div>
+
+        <div class="nav-section-label">OPERATIONS & CONTROL</div>
+
+        <!-- Navigation Menu Links -->
+        <nav class="sidebar-nav">
+            <a href="#overview" class="nav-link active" data-view="overview">
+                <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+                <span class="nav-text">Dashboard</span>
+                <span class="nav-indicator"></span>
+            </a>
+
+            <a href="#monitoring" class="nav-link" data-view="monitoring">
+                <span class="nav-icon"><i data-lucide="activity"></i></span>
+                <span class="nav-text">Live Monitoring</span>
+                <span class="nav-badge live-pulse-badge" id="sidebarLivePill">OFFLINE</span>
+            </a>
+
+            <a href="#devices" class="nav-link" data-view="devices">
+                <span class="nav-icon"><i data-lucide="laptop"></i></span>
+                <span class="nav-text">Network Devices</span>
+                <span class="nav-counter" id="sidebarDeviceCount">0</span>
+            </a>
+
+            <a href="#events" class="nav-link" data-view="events">
+                <span class="nav-icon"><i data-lucide="shield-alert"></i></span>
+                <span class="nav-text">Security Events</span>
+                <span class="nav-counter alert-counter" id="sidebarEventCount">0</span>
+            </a>
+
+            <a href="#arp-detection" class="nav-link" data-view="arp-detection">
+                <span class="nav-icon"><i data-lucide="git-compare"></i></span>
+                <span class="nav-text">ARP Detection</span>
+                <span class="nav-counter warn-counter" id="sidebarArpCount">0</span>
+            </a>
+
+            <a href="#reports" class="nav-link" data-view="reports">
+                <span class="nav-icon"><i data-lucide="file-spreadsheet"></i></span>
+                <span class="nav-text">Reports & Export</span>
+            </a>
+
+            <a href="#settings" class="nav-link" data-view="settings">
+                <span class="nav-icon"><i data-lucide="sliders-horizontal"></i></span>
+                <span class="nav-text">Settings</span>
+            </a>
+        </nav>
+
+        <!-- Bottom System Status Pod -->
+        <div class="sidebar-footer-pod">
+            <div class="system-status-card">
+                <div class="status-indicator-row">
+                    <span class="status-light-pulse" id="sidebarStatusLight"></span>
+                    <div class="status-texts">
+                        <span class="status-headline" id="sidebarStatusText">Passive Standby</span>
+                        <span class="status-subline" id="sidebarInterfaceText">No interface bound</span>
+                    </div>
+                </div>
+                <div class="system-meta-grid">
+                    <div class="meta-item">
+                        <span class="meta-key">ENGINE</span>
+                        <span class="meta-val">SCAPY BPF</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-key">STORAGE</span>
+                        <span class="meta-val">SQLITE 3</span>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-copyright">
+                NETGUARD INDUSTRIAL SUITE &copy; 2026
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- ======================================================== -->
+    <!-- MAIN CONTENT AREA                                        -->
+    <!-- ======================================================== -->
+    <div class="main-wrapper">
+
+        <!-- ==================================================== -->
+        <!-- 2. TOP NAVIGATION BAR: Breadcrumb, Search, Actions   -->
+        <!-- ==================================================== -->
+        <header class="topbar">
+            <!-- Left: Breadcrumb Navigation -->
+            <div class="topbar-left">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Navigation">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="breadcrumb-container">
+                    <span class="breadcrumb-root">SYSTEM</span>
+                    <span class="breadcrumb-sep">/</span>
+                    <span class="breadcrumb-group">SECOPS CONTROL</span>
+                    <span class="breadcrumb-sep">/</span>
+                    <span class="breadcrumb-current" id="breadcrumbActive">Dashboard Overview</span>
+                </div>
+            </div>
+
+            <!-- Center: Global Search Bar -->
+            <div class="topbar-center">
+                <div class="global-search-wrapper">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="globalSearchInput" 
+                           placeholder="Search IP, MAC, hostname, or event logs... (Press Ctrl + K)"
+                           autocomplete="off">
+                    <kbd class="search-kbd">Ctrl K</kbd>
+                    <button class="search-clear-btn" id="searchClearBtn" style="display: none;">&times;</button>
+                </div>
+            </div>
+
+            <!-- Right: Status, Notifications & Profile -->
+            <div class="topbar-right">
+                <!-- Interface Pill Badge -->
+                <div class="network-badge" id="topbarInterfaceBadge">
+                    <span class="network-dot" id="topbarInterfaceDot"></span>
+                    <span class="network-label" id="topbarInterfaceLabel">DISCONNECTED</span>
+                </div>
+
+                <!-- Monitoring Live/Standby Pill -->
+                <div class="monitor-pill standby" id="topbarMonitorPill">
+                    <span class="pulse-ring"></span>
+                    <span class="pill-text" id="topbarMonitorText">STANDBY</span>
+                </div>
+
+                <!-- Notifications Bell -->
+                <div class="topbar-action-item">
+                    <button class="icon-chrome-btn" id="notificationBtn" title="Security Alerts & Notifications">
+                        <i data-lucide="bell"></i>
+                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                    </button>
+                </div>
+
+                <!-- Refresh Trigger -->
+                <div class="topbar-action-item">
+                    <button class="icon-chrome-btn" id="globalRefreshBtn" title="Refresh Dashboard Telemetry">
+                        <i data-lucide="refresh-cw" id="refreshIcon"></i>
+                    </button>
+                </div>
+
+                <!-- User Profile Section -->
+                <div class="user-profile-widget">
+                    <div class="user-avatar">
+                        <span class="avatar-initials">SA</span>
+                        <span class="user-status-dot online"></span>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">SecOps Admin</span>
+                        <span class="user-role">Level 4 Analyst</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Notification Drawer Dropdown -->
+        <div class="notification-drawer" id="notificationDrawer" style="display: none;">
+            <div class="drawer-header">
+                <div class="drawer-title-group">
+                    <i data-lucide="shield-alert" class="drawer-icon"></i>
+                    <h4>Security Alert Center</h4>
+                </div>
+                <button class="drawer-close-btn" id="closeNotificationDrawer">&times;</button>
+            </div>
+            <div class="drawer-body" id="notificationList">
+                <div class="drawer-empty">No unacknowledged critical alerts.</div>
+            </div>
+            <div class="drawer-footer">
+                <button class="text-link-btn" id="viewAllEventsBtn">View All Events &rarr;</button>
+            </div>
+        </div>
+
+        <!-- ==================================================== -->
+        <!-- SCROLLABLE PAGE CONTAINER                            -->
+        <!-- ==================================================== -->
+        <main class="content-body">
+
+            <!-- Defensive Posture Advisory Banner -->
+            <div class="defensive-advisory-bar">
+                <div class="advisory-icon-box">
+                    <i data-lucide="info"></i>
+                </div>
+                <div class="advisory-content">
+                    <strong>Defensive Monitoring Policy:</strong>
+                    <span>NETGUARD observes ARP traffic visible to the selected interface. Observed IP-to-MAC mapping changes require careful investigation and are not definitive proof of malicious activity (e.g., DHCP reallocation, VM migration, or MAC randomization).</span>
+                </div>
+                <button class="advisory-dismiss" id="dismissAdvisory" aria-label="Dismiss banner">&times;</button>
+            </div>
+
+            <!-- Global Feedback / Alert Banner -->
+            <div class="feedback-banner" id="feedbackBanner" style="display: none;">
+                <span class="feedback-icon" id="feedbackIcon"><i data-lucide="info"></i></span>
+                <span class="feedback-text" id="feedbackText">Ready.</span>
+                <button class="feedback-close" id="feedbackClose">&times;</button>
+            </div>
+
+            <!-- ================================================ -->
+            <!-- VIEW 1: DASHBOARD OVERVIEW                       -->
+            <!-- ================================================ -->
+            <section class="dashboard-view active-view" id="view-overview">
+
+                <!-- 3. DASHBOARD OVERVIEW STATISTIC CARDS -->
+                <div class="stats-card-grid">
+
+                    <!-- Card 1: Devices Detected -->
+                    <div class="metallic-stat-card">
+                        <div class="card-top-row">
+                            <span class="stat-category">NETWORK INVENTORY</span>
+                            <div class="chrome-icon-box silver-glow">
+                                <i data-lucide="laptop"></i>
+                            </div>
+                        </div>
+                        <div class="stat-figure-row">
+                            <h2 class="stat-number" id="statDeviceCount">0</h2>
+                            <span class="stat-trend neutral" id="statDeviceTrend">+0 new</span>
+                        </div>
+                        <div class="card-bottom-row">
+                            <span class="stat-label">Observed Network Devices</span>
+                            <span class="stat-micro-meta" id="statActiveRatio">0 Active in Database</span>
+                        </div>
+                        <div class="card-metallic-sheen"></div>
+                    </div>
+
+                    <!-- Card 2: Total Security Events -->
+                    <div class="metallic-stat-card">
+                        <div class="card-top-row">
+                            <span class="stat-category">INCIDENT LOGS</span>
+                            <div class="chrome-icon-box blue-steel-glow">
+                                <i data-lucide="shield-check"></i>
+                            </div>
+                        </div>
+                        <div class="stat-figure-row">
+                            <h2 class="stat-number" id="statEventCount">0</h2>
+                            <span class="stat-trend neutral">Audit Trail</span>
+                        </div>
+                        <div class="card-bottom-row">
+                            <span class="stat-label">Total Security Events Logged</span>
+                            <span class="stat-micro-meta">Persistent Audit Record</span>
+                        </div>
+                        <div class="card-metallic-sheen"></div>
+                    </div>
+
+                    <!-- Card 3: Suspicious Mapping Changes -->
+                    <div class="metallic-stat-card warning-card">
+                        <div class="card-top-row">
+                            <span class="stat-category">ARP THREAT TELEMETRY</span>
+                            <div class="chrome-icon-box amber-glow">
+                                <i data-lucide="git-compare"></i>
+                            </div>
+                        </div>
+                        <div class="stat-figure-row">
+                            <h2 class="stat-number warn-text" id="statArpChanges">0</h2>
+                            <span class="stat-trend warn-badge" id="statAlertsUnack">0 Unreviewed</span>
+                        </div>
+                        <div class="card-bottom-row">
+                            <span class="stat-label">Suspicious Mapping Changes</span>
+                            <span class="stat-micro-meta">Potential ARP Spoofing Conflicts</span>
+                        </div>
+                        <div class="card-metallic-sheen"></div>
+                    </div>
+
+                    <!-- Card 4: Monitoring Status -->
+                    <div class="metallic-stat-card status-card">
+                        <div class="card-top-row">
+                            <span class="stat-category">CAPTURE ENGINE</span>
+                            <div class="chrome-icon-box green-glow" id="statEngineIconBox">
+                                <i data-lucide="radio"></i>
+                            </div>
+                        </div>
+                        <div class="stat-figure-row">
+                            <h2 class="stat-number" id="statMonitorStatus">STOPPED</h2>
+                            <span class="stat-trend status-tag" id="statPacketCounter">0 Pkts</span>
+                        </div>
+                        <div class="card-bottom-row">
+                            <span class="stat-label" id="statInterfaceInfo">No interface selected</span>
+                            <span class="stat-micro-meta">Promiscuous BPF Filter: ARP</span>
+                        </div>
+                        <div class="card-metallic-sheen"></div>
+                    </div>
+
+                </div>
+
+                <!-- 4. NETWORK MONITORING CONTROL CENTER -->
+                <div class="metallic-panel control-center-panel" id="controlCenterSection">
+                    <div class="panel-header-bar">
+                        <div class="panel-title-group">
+                            <div class="title-with-icon">
+                                <i data-lucide="sliders" class="panel-header-icon"></i>
+                                <h3>Network Monitoring Control Center</h3>
+                            </div>
+                            <p class="panel-subtitle">Configure hardware interfaces, manage capture loops, and simulate traffic.</p>
+                        </div>
+                        <div class="panel-badge-group">
+                            <span class="telemetry-pill" id="controlEngineBadge">ENGINE: READY</span>
+                        </div>
+                    </div>
+
+                    <div class="control-grid">
+                        <!-- Interface Selection Form -->
+                        <div class="control-form-block">
+                            <label for="interfaceSelect" class="form-label">
+                                <i data-lucide="network" class="label-icon"></i> NETWORK INTERFACE
+                            </label>
+                            <div class="select-chrome-wrapper">
+                                <select id="interfaceSelect" class="chrome-select">
+                                    <option value="">Querying network interfaces...</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="select-arrow"></i>
+                            </div>
+                            <span class="input-hint">Select the active Ethernet, Wi-Fi, or Virtual NIC adapter.</span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="control-buttons-block">
+                            <button class="chrome-btn btn-primary" id="startBtn">
+                                <i data-lucide="play" class="btn-icon"></i> Start Monitoring
+                            </button>
+
+                            <button class="chrome-btn btn-danger" id="stopBtn" disabled>
+                                <i data-lucide="square" class="btn-icon"></i> Stop Monitoring
+                            </button>
+
+                            <button class="chrome-btn btn-silver" id="refreshBtn">
+                                <i data-lucide="refresh-cw" class="btn-icon"></i> Refresh
+                            </button>
+
+                            <button class="chrome-btn btn-demo" id="demoBtn" title="Scan local network and ARP cache for live hardware devices">
+                                <i data-lucide="scan" class="btn-icon"></i> ⚡ Scan Real Network
+                            </button>
+
+                            <button class="chrome-btn btn-danger btn-sm" id="simulateAttackBtn" title="Launch a controlled ARP spoofing attack test on the Gateway to verify detection alerts">
+                                <i data-lucide="shield-alert" class="btn-icon"></i> ⚔️ Test Threat Detection
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Telemetry Strip -->
+                    <div class="telemetry-strip">
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Active Interface:</span>
+                            <span class="telemetry-value" id="telInterface">None</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Session Uptime:</span>
+                            <span class="telemetry-value" id="telUptime">00:00:00</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Packets Captured:</span>
+                            <span class="telemetry-value" id="telPackets">0</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Filter Mode:</span>
+                            <span class="telemetry-value font-mono">ether proto 0x0806</span>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telemetry-label">Engine Health:</span>
+                            <span class="telemetry-value status-good" id="telHealth">OPTIMAL</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. NETWORK ACTIVITY CHART -->
+                <div class="metallic-panel chart-panel">
+                    <div class="panel-header-bar">
+                        <div class="panel-title-group">
+                            <div class="title-with-icon">
+                                <i data-lucide="line-chart" class="panel-header-icon"></i>
+                                <h3>Network Activity & Anomaly Telemetry</h3>
+                            </div>
+                            <p class="panel-subtitle">Chronological distribution of ARP observations, host discoveries, and mapping conflicts.</p>
+                        </div>
+                        <div class="chart-filter-controls">
+                            <button class="chart-filter-btn active" data-range="1h">1 Hour</button>
+                            <button class="chart-filter-btn" data-range="6h">6 Hours</button>
+                            <button class="chart-filter-btn" data-range="24h">24 Hours</button>
+                            <button class="chart-filter-btn" data-range="all">All Time</button>
+                        </div>
+                    </div>
+
+                    <div class="chart-container-box">
+                        <canvas id="activityChart" height="260"></canvas>
+                        <!-- Fallback SVG visualization in case of canvas failure -->
+                        <div id="chartFallback" class="chart-fallback-box" style="display: none;">
+                            <svg class="fallback-sparkline" viewBox="0 0 800 200" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.3"/>
+                                        <stop offset="100%" stop-color="#C5C9CE" stop-opacity="0.0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path d="M0,150 Q100,120 200,140 T400,90 T600,130 T800,60 L800,200 L0,200 Z" fill="url(#chartGrad)"/>
+                                <path d="M0,150 Q100,120 200,140 T400,90 T600,130 T800,60" fill="none" stroke="#252B32" stroke-width="2"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="chart-legend-bar">
+                        <div class="legend-chip">
+                            <span class="legend-color-dot silver-dot"></span>
+                            <span>ARP Observations</span>
+                        </div>
+                        <div class="legend-chip">
+                            <span class="legend-color-dot green-dot"></span>
+                            <span>Host Discoveries</span>
+                        </div>
+                        <div class="legend-chip">
+                            <span class="legend-color-dot red-dot"></span>
+                            <span>Suspicious Mapping Events</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DUAL OVERVIEW SECTION: RECENT DEVICES & HIGH ALERTS -->
+                <div class="dual-columns-grid">
+                    
+                    <!-- Quick Devices Card -->
+                    <div class="metallic-panel compact-panel">
+                        <div class="panel-header-bar compact-header">
+                            <h4>Recent Network Hosts</h4>
+                            <a href="#devices" class="panel-link-action" data-view="devices">View All Inventory &rarr;</a>
+                        </div>
+                        <div class="table-chrome-wrapper">
+                            <table class="chrome-table compact-table">
+                                <thead>
+                                    <tr>
+                                        <th>IP ADDRESS</th>
+                                        <th>MAC ADDRESS</th>
+                                        <th>LAST OBSERVED</th>
+                                        <th>STATUS</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="overviewDeviceRows">
+                                    <tr><td colspan="4" class="empty-cell">Loading hosts...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quick Alerts Card -->
+                    <div class="metallic-panel compact-panel">
+                        <div class="panel-header-bar compact-header">
+                            <h4>Critical Security Events</h4>
+                            <a href="#events" class="panel-link-action" data-view="events">Open Event Center &rarr;</a>
+                        </div>
+                        <div class="table-chrome-wrapper">
+                            <table class="chrome-table compact-table">
+                                <thead>
+                                    <tr>
+                                        <th>TIME</th>
+                                        <th>SEVERITY</th>
+                                        <th>EVENT</th>
+                                        <th>ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="overviewAlertRows">
+                                    <tr><td colspan="4" class="empty-cell">No alerts logged.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ================================================ -->
+            <!-- VIEW 2: LIVE MONITORING CONTROL CENTER           -->
+            <!-- ================================================ -->
+            <section class="dashboard-view" id="view-monitoring" style="display: none;">
+                <div class="view-header-title">
+                    <h2>Live Network Monitoring Center</h2>
+                    <p>Real-time passive packet analysis, interface telemetry, and sniffer diagnostics.</p>
+                </div>
+
+                <!-- Extended Monitoring Controls -->
+                <div class="metallic-panel">
+                    <div class="panel-header-bar">
+                        <h3>Packet Sniffer Configuration</h3>
+                        <span class="telemetry-pill" id="monitoringViewStatus">STANDBY</span>
+                    </div>
+
+                    <div class="monitoring-extended-grid">
+                        <div class="extended-card">
+                            <h4>Hardware Binding</h4>
+                            <div class="select-chrome-wrapper" style="margin-top: 10px;">
+                                <select id="interfaceSelect2" class="chrome-select"></select>
+                                <i data-lucide="chevron-down" class="select-arrow"></i>
+                            </div>
+                            <div class="btn-group-row" style="margin-top: 15px;">
+                                <button class="chrome-btn btn-primary" id="startBtn2">
+                                    <i data-lucide="play"></i> Start Engine
+                                </button>
+                                <button class="chrome-btn btn-danger" id="stopBtn2" disabled>
+                                    <i data-lucide="square"></i> Halt Engine
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="extended-card">
+                            <h4>Live Pulse & Telemetry</h4>
+                            <div class="oscilloscope-box">
+                                <div class="pulse-line-anim" id="oscilloscopePulse"></div>
+                                <div class="oscilloscope-grid"></div>
+                                <div class="oscilloscope-readout">
+                                    <span id="oscRate">0.0 PKT/S</span>
+                                    <span id="oscDrops">DROPS: 0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="extended-card">
+                            <h4>Engine Specifications</h4>
+                            <ul class="spec-list">
+                                <li><strong>Protocol:</strong> Address Resolution Protocol (RFC 826)</li>
+                                <li><strong>Mode:</strong> Passive Non-Intrusive Sniffing</li>
+                                <li><strong>Capture Engine:</strong> Python Scapy Core with Npcap Driver</li>
+                                <li><strong>Threat Model:</strong> Unsolicited Gratuitous ARP & MAC Flipping</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Stream Feed Table -->
+                <div class="metallic-panel">
+                    <div class="panel-header-bar">
+                        <h3>Live Telemetry Stream</h3>
+                        <span class="table-count-badge" id="liveStreamCount">0 events captured</span>
+                    </div>
+                    <div class="table-chrome-wrapper">
+                        <table class="chrome-table">
+                            <thead>
+                                <tr>
+                                    <th>TIMESTAMP</th>
+                                    <th>TYPE</th>
+                                    <th>SOURCE IP</th>
+                                    <th>OBSERVED MAC</th>
+                                    <th>STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="liveStreamRows">
+                                <tr><td colspan="5" class="empty-cell">Waiting for packet activity. Click 'Start Monitoring' or '⚡ Demo Data'.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================================================ -->
+            <!-- VIEW 3: NETWORK DEVICE INVENTORY                 -->
+            <!-- ================================================ -->
+            <section class="dashboard-view" id="view-devices" style="display: none;">
+                <div class="view-header-title">
+                    <h2>Network Device Inventory</h2>
+                    <p>All endpoints and hardware interfaces discovered through observed ARP broadcasts.</p>
+                </div>
+
+                <div class="metallic-panel">
+                    <!-- Search, Filter & Actions Toolbar -->
+                    <div class="table-toolbar-bar">
+                        <div class="toolbar-search-box">
+                            <i data-lucide="search" class="toolbar-search-icon"></i>
+                            <input type="text" id="deviceSearchInput" placeholder="Filter by IP, MAC, hostname, or vendor..." class="toolbar-input">
+                        </div>
+
+                        <div class="toolbar-filters">
+                            <button class="filter-chip active" data-filter="all">All Devices</button>
+                            <button class="filter-chip" data-filter="Active">Active</button>
+                            <button class="filter-chip" data-filter="Suspicious">Suspicious</button>
+                        </div>
+
+                        <div class="toolbar-right-actions">
+                            <div class="page-size-selector">
+                                <label for="devicePageSize">Show:</label>
+                                <select id="devicePageSize" class="chrome-select-sm">
+                                    <option value="10">10</option>
+                                    <option value="25" selected>25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </div>
+
+                            <a href="/api/export/devices" class="chrome-btn btn-silver btn-sm" id="exportDevicesBtn" title="Export Devices to CSV">
+                                <i data-lucide="download"></i> Export CSV
+                            </a>
+
+                            <button class="chrome-btn btn-silver btn-sm" id="refreshDevicesBtn" title="Refresh Inventory">
+                                <i data-lucide="refresh-cw"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 6. NETWORK DEVICE INVENTORY TABLE -->
+                    <div class="table-chrome-wrapper">
+                        <table class="chrome-table" id="devicesTable">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" data-sort="ip">IP ADDRESS <span class="sort-icon">&varr;</span></th>
+                                    <th class="sortable" data-sort="mac">MAC ADDRESS <span class="sort-icon">&varr;</span></th>
+                                    <th>HOSTNAME & VENDOR</th>
+                                    <th class="sortable" data-sort="first_seen">FIRST SEEN <span class="sort-icon">&varr;</span></th>
+                                    <th class="sortable" data-sort="last_seen">LAST SEEN <span class="sort-icon">&varr;</span></th>
+                                    <th class="sortable text-center" data-sort="observations">OBSERVATIONS <span class="sort-icon">&varr;</span></th>
+                                    <th>STATUS</th>
+                                    <th class="text-right">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deviceTableBody">
+                                <tr><td colspan="8" class="empty-cell">No devices detected yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Table Pagination Footer -->
+                    <div class="table-pagination-bar">
+                        <span class="pagination-info" id="devicePaginationInfo">Showing 0 of 0 devices</span>
+                        <div class="pagination-controls">
+                            <button class="pagination-btn" id="devicePrevBtn" disabled>&laquo; Previous</button>
+                            <span class="pagination-page-indicator" id="devicePageNum">Page 1 of 1</span>
+                            <button class="pagination-btn" id="deviceNextBtn" disabled>Next &raquo;</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================================================ -->
+            <!-- VIEW 4: SECURITY EVENT CENTER                    -->
+            <!-- ================================================ -->
+            <section class="dashboard-view" id="view-events" style="display: none;">
+                <div class="view-header-title">
+                    <h2>Security Event Center</h2>
+                    <p>Chronological incident register tracking device discovery, IP shifts, and ARP mapping conflicts.</p>
+                </div>
+
+                <div class="metallic-panel">
+                    <!-- Events Toolbar -->
+                    <div class="table-toolbar-bar">
+                        <div class="toolbar-search-box">
+                            <i data-lucide="search" class="toolbar-search-icon"></i>
+                            <input type="text" id="eventSearchInput" placeholder="Search events by IP, MAC, type, description..." class="toolbar-input">
+                        </div>
+
+                        <div class="toolbar-filters">
+                            <label class="filter-label" for="eventSeveritySelect">Severity:</label>
+                            <select id="eventSeveritySelect" class="chrome-select-sm">
+                                <option value="ALL">All Severities</option>
+                                <option value="HIGH">High (Critical)</option>
+                                <option value="MEDIUM">Medium</option>
+                                <option value="INFO">Info</option>
+                            </select>
+
+                            <label class="filter-label" for="eventStatusSelect" style="margin-left: 10px;">Review:</label>
+                            <select id="eventStatusSelect" class="chrome-select-sm">
+                                <option value="ALL">All Statuses</option>
+                                <option value="UNACK">Unreviewed Only</option>
+                                <option value="ACK">Acknowledged Only</option>
+                            </select>
+                        </div>
+
+                        <div class="toolbar-right-actions">
+                            <a href="/api/export/events" class="chrome-btn btn-silver btn-sm" id="exportEventsBtn" title="Export Security Events to CSV">
+                                <i data-lucide="download"></i> Export CSV
+                            </a>
+
+                            <button class="chrome-btn btn-silver btn-sm" id="refreshEventsBtn" title="Refresh Events">
+                                <i data-lucide="refresh-cw"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 7. SECURITY EVENT TABLE -->
+                    <div class="table-chrome-wrapper">
+                        <table class="chrome-table" id="eventsTable">
+                            <thead>
+                                <tr>
+                                    <th>EVENT ID</th>
+                                    <th>TIMESTAMP</th>
+                                    <th>TYPE</th>
+                                    <th>SEVERITY</th>
+                                    <th>TARGET IP</th>
+                                    <th>PREVIOUS MAC</th>
+                                    <th>OBSERVED MAC</th>
+                                    <th>DESCRIPTION</th>
+                                    <th>INVESTIGATION</th>
+                                    <th class="text-right">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="eventTableBody">
+                                <tr><td colspan="10" class="empty-cell">No security events logged.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Events Pagination -->
+                    <div class="table-pagination-bar">
+                        <span class="pagination-info" id="eventPaginationInfo">Showing 0 of 0 events</span>
+                        <div class="pagination-controls">
+                            <button class="pagination-btn" id="eventPrevBtn" disabled>&laquo; Previous</button>
+                            <span class="pagination-page-indicator" id="eventPageNum">Page 1 of 1</span>
+                            <button class="pagination-btn" id="eventNextBtn" disabled>Next &raquo;</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================================================ -->
+            <!-- VIEW 5: ARP DETECTION & FORENSIC ANALYSIS        -->
+            <!-- ================================================ -->
+            <section class="dashboard-view" id="view-arp-detection" style="display: none;">
+                <div class="view-header-title">
+                    <h2>ARP Mapping Conflict & Spoofing Detection</h2>
+                    <p>In-depth inspection of hardware address alterations, cache poisoning indicators, and host attribution.</p>
+                </div>
+
+                <!-- 8. ARP DETECTION EXPLANATORY NOTICE -->
+                <div class="metallic-panel arp-education-panel">
+                    <div class="panel-header-bar">
+                        <div class="title-with-icon">
+                            <i data-lucide="shield-alert" class="panel-header-icon" style="color: #DC2626;"></i>
+                            <h3>Forensic Explanation: What Constitutes an ARP Anomaly?</h3>
+                        </div>
+                        <span class="badge-amber">DEFENSIVE PROTOCOL</span>
+                    </div>
+                    <div class="education-grid">
+                        <div class="education-card">
+                            <h4>1. The Baseline Binding</h4>
+                            <p>In standard IPv4 networks, an endpoint maps its logical IP address to a physical 48-bit MAC address via ARP requests and replies. NETGUARD records these bindings to create an empirical baseline.</p>
+                        </div>
+                        <div class="education-card">
+                            <h4>2. The Mapping Change</h4>
+                            <p>An alert is raised when a packet arrives asserting that an established IP address is now located at a different MAC address. This causes neighboring hosts to overwrite their ARP tables.</p>
+                        </div>
+                        <div class="education-card">
+                            <h4>3. Attack vs. Legitimate Reassignment</h4>
+                            <p><strong>Crucial Rule:</strong> Mapping changes do not automatically prove malicious action. Legitimate causes include DHCP lease expiry, access point roaming, NIC replacement, and OS MAC randomization. Always correlate with 802.1X and switch MAC tables.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suspicious Mappings Table -->
+                <div class="metallic-panel">
+                    <div class="panel-header-bar">
+                        <h3>Observed ARP Mapping Changes</h3>
+                        <span class="table-count-badge warn-badge" id="arpAnomaliesCount">0 Anomalies Detected</span>
+                    </div>
+
+                    <div class="table-chrome-wrapper">
+                        <table class="chrome-table" id="arpTable">
+                            <thead>
+                                <tr>
+                                    <th>INCIDENT</th>
+                                    <th>DETECTION TIME</th>
+                                    <th>IP ADDRESS</th>
+                                    <th>PREVIOUSLY BOUND MAC</th>
+                                    <th>NEWLY CLAIMED MAC</th>
+                                    <th>RISK LEVEL</th>
+                                    <th>INVESTIGATION STATUS</th>
+                                    <th class="text-right">FORENSIC REVIEW</th>
+                                </tr>
+                            </thead>
+                            <tbody id="arpTableBody">
+                                <tr><td colspan="8" class="empty-cell">No ARP mapping changes observed. Network baseline is stable.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================================================ -->
+            <!-- VIEW 6: REPORTS & EXPORT                         -->
+            <!-- ================================================ -->
+            <section class="dashboard-view" id="view-reports" style="display: none;">
+                <div class="view-header-title">
+                    <h2>Forensic Reports & Data Export</h2>
+                    <p>Export complete security telemetry, device inventories, and compliance documentation.</p>
+                </div>
+
+                <div class="reports-cards-grid">
+                    <!-- Report 1: Device Inventory -->
+                    <div class="metallic-stat-card report-box">
+                        <div class="report-icon-box">
+                            <i data-lucide="file-spreadsheet"></i>
+                        </div>
+                        <h4>Device Inventory Report</h4>
+                        <p>Complete roster of detected IP addresses, physical MAC addresses, observed timestamps, and host telemetry.</p>
+                        <div class="report-meta-row">
+                            <span>Format: RFC 4180 CSV</span>
+                            <span>Target: Table 'devices'</span>
+                        </div>
+                        <a href="/api/export/devices" class="chrome-btn btn-silver btn-full">
+                            <i data-lucide="download"></i> Download Devices CSV
+                        </a>
+                    </div>
+
+                    <!-- Report 2: Security Events Audit -->
+                    <div class="metallic-stat-card report-box">
+                        <div class="report-icon-box">
+                            <i data-lucide="shield-alert"></i>
+                        </div>
+                        <h4>Security Events & Alerts</h4>
+                        <p>Detailed incident log recording every discovery, reassignment, and high-severity ARP anomaly with timestamps.</p>
+                        <div class="report-meta-row">
+                            <span>Format: RFC 4180 CSV</span>
+                            <span>Target: Table 'events'</span>
+                        </div>
+                        <a href="/api/export/events" class="chrome-btn btn-silver btn-full">
+                            <i data-lucide="download"></i> Download Events CSV
+                        </a>
+                    </div>
+
+                    <!-- Report 3: Printable Executive Dossier -->
+                    <div class="metallic-stat-card report-box">
+                        <div class="report-icon-box">
+                            <i data-lucide="printer"></i>
+                        </div>
+                        <h4>Printable SecOps Dossier</h4>
+                        <p>Clean, printable metallic summary suitable for incident reviews, management briefings, and compliance audits.</p>
+                        <div class="report-meta-row">
+                            <span>Format: Browser Print / PDF</span>
+                            <span>Styling: @media print</span>
+                        </div>
+                        <button class="chrome-btn btn-primary btn-full" id="printReportBtn">
+                            <i data-lucide="printer"></i> Print / Save as PDF
+                        </button>
+                    </div>
+
+                    <!-- Report 4: Forensic JSON Package -->
+                    <div class="metallic-stat-card report-box">
+                        <div class="report-icon-box">
+                            <i data-lucide="binary"></i>
+                        </div>
+                        <h4>Forensic JSON Package</h4>
+                        <p>Structured JSON export of all devices, event graphs, and live sniffer telemetry for SIEM and SOAR integration.</p>
+                        <div class="report-meta-row">
+                            <span>Format: application/json</span>
+                            <span>Target: Full Bundle</span>
+                        </div>
+                        <button class="chrome-btn btn-silver btn-full" id="exportJsonBtn">
+                            <i data-lucide="download"></i> Export JSON Bundle
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Report Summary Preview Box -->
+                <div class="metallic-panel" style="margin-top: 25px;">
+                    <div class="panel-header-bar">
+                        <h3>Dossier Preview Summary</h3>
+                        <span class="telemetry-pill">AUTOGENERATED TELEMETRY</span>
+                    </div>
+                    <div class="dossier-preview-content" id="dossierPreview">
+                        <div class="dossier-header-row">
+                            <div>
+                                <h4>NETGUARD NETWORK AUDIT DOSSIER</h4>
+                                <p>Generated: <span id="dossierTimestamp">--</span></p>
+                            </div>
+                            <div class="dossier-stats-pill" id="dossierStatusPill">
+                                SYSTEM INTEGRITY: SECURE
+                            </div>
+                        </div>
+                        <hr class="dossier-divider">
+                        <div class="dossier-grid">
+                            <div class="dossier-metric">
+                                <span class="dossier-key">TOTAL MONITORED HOSTS</span>
+                                <span class="dossier-val" id="dossierHosts">0</span>
+                            </div>
+                            <div class="dossier-metric">
+                                <span class="dossier-key">RECORDED INCIDENTS</span>
+                                <span class="dossier-val" id="dossierIncidents">0</span>
+                            </div>
+                            <div class="dossier-metric">
+                                <span class="dossier-key">ARP CONFLICTS</span>
+                                <span class="dossier-val" id="dossierConflicts">0</span>
+                            </div>
+                            <div class="dossier-metric">
+                                <span class="dossier-key">ACTIVE INTERFACE</span>
+                                <span class="dossier-val" id="dossierIf">None</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================================================ -->
+            <!-- VIEW 7: SETTINGS & SYSTEM CONFIGURATION          -->
+            <!-- ================================================ -->
+            <section class="dashboard-view" id="view-settings" style="display: none;">
+                <div class="view-header-title">
+                    <h2>Operational Settings & Controls</h2>
+                    <p>Adjust telemetry polling rates, notification rules, sound alerts, and database maintenance.</p>
+                </div>
+
+                <div class="settings-grid">
+                    <!-- Card 1: Polling & Auto-Refresh -->
+                    <div class="metallic-panel setting-card">
+                        <div class="panel-header-bar compact-header">
+                            <h4>Telemetry & Polling Frequency</h4>
+                        </div>
+                        <div class="setting-row">
+                            <div>
+                                <strong>Auto-Refresh Interval</strong>
+                                <p class="setting-desc">Frequency at which the frontend polls Flask for new packets.</p>
+                            </div>
+                            <div class="setting-control">
+                                <select id="settingPollingInterval" class="chrome-select-sm">
+                                    <option value="2000">2 Seconds (High Rate)</option>
+                                    <option value="3000" selected>3 Seconds (Recommended)</option>
+                                    <option value="5000">5 Seconds (Low Bandwidth)</option>
+                                    <option value="0">Disabled (Manual Only)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div>
+                                <strong>Audible Security Chime</strong>
+                                <p class="setting-desc">Plays a subtle metallic chime when a HIGH severity ARP anomaly occurs.</p>
+                            </div>
+                            <div class="setting-control">
+                                <label class="chrome-switch">
+                                    <input type="checkbox" id="settingAudioAlerts" checked>
+                                    <span class="switch-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Capture Engine Rules -->
+                    <div class="metallic-panel setting-card">
+                        <div class="panel-header-bar compact-header">
+                            <h4>Packet Engine & Detection Thresholds</h4>
+                        </div>
+                        <div class="setting-row">
+                            <div>
+                                <strong>BPF Capture Filter</strong>
+                                <p class="setting-desc">Berkeley Packet Filter expression applied to raw packet driver.</p>
+                            </div>
+                            <div class="setting-control font-mono">
+                                <input type="text" class="toolbar-input" value="arp" readonly style="width: 120px; text-align: center;">
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div>
+                                <strong>High Severity Triggers</strong>
+                                <p class="setting-desc">Flag any IP claiming a different MAC from baseline as HIGH risk.</p>
+                            </div>
+                            <div class="setting-control">
+                                <span class="badge-emerald">STRICT ENFORCEMENT</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Database & Maintenance -->
+                    <div class="metallic-panel setting-card">
+                        <div class="panel-header-bar compact-header">
+                            <h4>Database Management & State</h4>
+                        </div>
+                        <div class="setting-row">
+                            <div>
+                                <strong>Synchronize Live Network Devices</strong>
+                                <p class="setting-desc">Queries the local ARP cache and network interface for all active physical hosts.</p>
+                            </div>
+                            <div class="setting-control">
+                                <button class="chrome-btn btn-silver btn-sm" id="settingsSeedBtn">
+                                    <i data-lucide="refresh-cw"></i> Sync Real Network
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div>
+                                <strong>Purge Database Records</strong>
+                                <p class="setting-desc">Permanently clears all devices and logged security events in security.db.</p>
+                            </div>
+                            <div class="setting-control">
+                                <button class="chrome-btn btn-danger btn-sm" id="settingsClearBtn">
+                                    <i data-lucide="trash-2"></i> Reset Database
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- ==================================================== -->
+        <!-- SYSTEM FOOTER                                        -->
+        <!-- ==================================================== -->
+        <footer class="app-footer">
+            <div class="footer-left">
+                <span class="footer-brand">NETGUARD Network Security System</span>
+                <span class="footer-dot">&bull;</span>
+                <span class="footer-detail">Passive Defensive Monitoring Mode &bull; Version 2.4-Metallic</span>
+            </div>
+            <div class="footer-right">
+                <span id="footerDbStatus">Local Database Connected</span>
+                <span class="footer-dot">&bull;</span>
+                <span id="footerLastSync">Synced: Just now</span>
+            </div>
+        </footer>
+
+    </div>
+
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL: EVENT INVESTIGATION & STATUS UPDATE               -->
+<!-- ======================================================== -->
+<div class="modal-backdrop" id="investigationModal" style="display: none;">
+    <div class="modal-chrome-dialog">
+        <div class="modal-header">
+            <div class="title-with-icon">
+                <i data-lucide="shield-alert" class="modal-icon"></i>
+                <h3 id="modalEventTitle">Investigate Security Event #0</h3>
+            </div>
+            <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-detail-grid">
+                <div class="detail-row">
+                    <span class="detail-key">Event Type:</span>
+                    <span class="detail-val font-mono" id="modalEventType">--</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-key">Timestamp:</span>
+                    <span class="detail-val font-mono" id="modalEventTime">--</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-key">Target IP:</span>
+                    <span class="detail-val font-mono" id="modalEventIp">--</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-key">Previous MAC:</span>
+                    <span class="detail-val font-mono" id="modalEventPrevMac">--</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-key">Observed MAC:</span>
+                    <span class="detail-val font-mono" id="modalEventNewMac">--</span>
+                </div>
+                <div class="detail-row full-width">
+                    <span class="detail-key">Description:</span>
+                    <p class="detail-val-box" id="modalEventDesc">--</p>
+                </div>
+            </div>
+
+            <div class="modal-action-section">
+                <label for="modalStatusSelect" class="form-label">Set Forensic Investigation Status:</label>
+                <select id="modalStatusSelect" class="chrome-select">
+                    <option value="Pending Review">Pending Review</option>
+                    <option value="Acknowledged">Acknowledged</option>
+                    <option value="Investigating">Active Investigation</option>
+                    <option value="False Positive - Hardware Swap">False Positive — Legitimate Hardware Replaced</option>
+                    <option value="False Positive - DHCP Reallocation">False Positive — DHCP Lease Reallocated</option>
+                    <option value="Confirmed Spoofing Incident">CONFIRMED — ARP Spoofing / Host Isolation Required</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="chrome-btn btn-silver" id="modalCancelBtn">Cancel</button>
+            <button class="chrome-btn btn-primary" id="modalSaveBtn">Save & Acknowledge</button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- MODAL: CLEAR DATABASE CONFIRMATION                       -->
+<!-- ======================================================== -->
+<div class="modal-backdrop" id="confirmClearModal" style="display: none;">
+    <div class="modal-chrome-dialog modal-sm">
+        <div class="modal-header">
+            <div class="title-with-icon">
+                <i data-lucide="alert-triangle" class="modal-icon warn-text"></i>
+                <h3>Confirm Database Reset</h3>
+            </div>
+            <button class="modal-close-btn" id="closeClearModalBtn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete all recorded devices and security events? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="chrome-btn btn-silver" id="cancelClearBtn">Cancel</button>
+            <button class="chrome-btn btn-danger" id="executeClearBtn">Yes, Purge Database</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
